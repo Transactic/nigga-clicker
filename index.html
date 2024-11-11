@@ -3,25 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nigger Whipper</title>
+    <title>Clicker Game</title>
     <style>
+        /* Default Light Mode Styles */
         :root {
             --bg-color: #f0f0f0;
             --text-color: #333;
         }
+
+        /* Dark Mode Styles */
         .dark-mode {
             --bg-color: #333;
             --text-color: #f0f0f0;
         }
+
+        /* Global Body Styles */
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: var(--bg-color);
             color: var(--text-color);
-            cursor: url("cursor.png"), auto;
+            cursor: url("cursor.png"), auto; /* Custom cursor */
         }
+
+        /* Button Styling */
         #clicker-button {
-            background-image: url("bl-g.jpg");
+            background-image: url("bl-g.jpg"); /* Button image */
             background-size: cover;
             width: 100px;
             height: 100px;
@@ -31,95 +38,137 @@
             border-radius: 10px;
             outline: none;
         }
-        #score, #leaderboard {
-            font-size: 20px;
-            margin-top: 20px;
+
+        /* Dark Mode Toggle Button */
+        #dark-mode-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
         }
-        #leaderboard ul {
-            list-style: none;
-            padding: 0;
+
+        #dark-mode-button:hover {
+            background-color: #0056b3;
         }
-        .admin-panel, #admin-controls {
+
+        /* Login and Signup Forms */
+        #auth-container {
+            margin-top: 50px;
+        }
+
+        #login-form, #signup-form {
             display: none;
             margin-top: 20px;
         }
-        .visible { display: block; }
+
+        #login-form input, #signup-form input {
+            padding: 10px;
+            margin: 10px;
+            width: 200px;
+        }
+
+        #login-form button, #signup-form button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #login-form button:hover, #signup-form button:hover {
+            background-color: #0056b3;
+        }
+
     </style>
 </head>
 <body>
-    <h1>Nigger Whipper</h1>
+    <h1>Clicker Game</h1>
+
+    <!-- Dark Mode Button -->
+    <button id="dark-mode-button" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+
+    <!-- Game Button -->
     <button id="clicker-button"></button> <!-- Image button -->
     <p id="score">Score: 0</p>
-    
+
     <h2>Leaderboard</h2>
     <div id="leaderboard">
         <ul id="leaderboard-list"></ul>
     </div>
 
-    <!-- Dark Mode Toggle -->
-    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+    <!-- Authentication Forms -->
+    <div id="auth-container">
+        <!-- Login Form -->
+        <div id="login-form">
+            <h3>Login</h3>
+            <input type="text" id="login-username" placeholder="Username">
+            <input type="password" id="login-password" placeholder="Password">
+            <button onclick="loginUser()">Login</button>
+            <p>Don't have an account? <button onclick="showSignupForm()">Sign up</button></p>
+        </div>
 
-    <!-- Admin Login -->
-    <div class="admin-panel">
-        <h2>Admin Panel</h2>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button onclick="adminLogin()">Login</button>
+        <!-- Signup Form -->
+        <div id="signup-form">
+            <h3>Sign Up</h3>
+            <input type="text" id="signup-username" placeholder="Username">
+            <input type="password" id="signup-password" placeholder="Password">
+            <button onclick="signupUser()">Sign Up</button>
+            <p>Already have an account? <button onclick="showLoginForm()">Login</button></p>
+        </div>
     </div>
 
-    <!-- Admin Controls -->
-    <div id="admin-controls">
-        <h2>Admin Controls</h2>
-        <button onclick="givePlayerClicks()">Give Clicks to Player</button>
-        <button onclick="giveSelfClicks()">Give Clicks to Self</button>
-        <button onclick="banPlayer()">Ban Player</button>
-        <button onclick="toggleGameStatus()">Start/Stop Game</button>
-    </div>
+    <!-- Include Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
 
-    <!-- Firebase and Game Script -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
-        import { getFirestore, collection, addDoc, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
+    <script>
+        // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "YOUR_FIREBASE_API_KEY",
+            apiKey: "AIzaSyAwK0xE6Erw89xVf0pJ9RUv0zYPoNsyKjo",
             authDomain: "clicker-cd55d.firebaseapp.com",
             projectId: "clicker-cd55d",
-            storageBucket: "clicker-cd55d.appspot.com",
+            storageBucket: "clicker-cd55d.firebasestorage.app",
             messagingSenderId: "545343257081",
             appId: "1:545343257081:web:433dd23f6e41b660b36528",
             measurementId: "G-PVSKZBKTQ5"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const db = getFirestore(app);
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
+        // Audio file for click
         const clickSound = new Audio("click-sound.mp3");
-        let score = 0;
-        let gameStatus = true;
 
+        let score = 0;
+
+        // Update the score display
         const updateScore = () => {
             document.getElementById("score").innerText = "Score: " + score;
         };
 
-        document.getElementById("clicker-button").addEventListener("click", () => {
-            if (gameStatus) {
-                clickSound.play();
-                score++;
-                updateScore();
-                saveScore();
-            } else {
-                alert("The game is currently stopped by the admin.");
-            }
+        // Handle button click
+        document.getElementById("clicker-button").addEventListener("click", async () => {
+            clickSound.play();
+            score++;
+            updateScore();
+            saveScore();
         });
 
+        // Save the score to Firebase Firestore
         const saveScore = async () => {
             try {
-                await addDoc(collection(db, "leaderboard"), {
+                await db.collection("leaderboard").add({
                     score: score,
-                    timestamp: new Date()
+                    timestamp: new Date(),
+                    user: auth.currentUser ? auth.currentUser.uid : "Guest"
                 });
                 updateLeaderboard();
             } catch (error) {
@@ -127,15 +176,15 @@
             }
         };
 
+        // Retrieve leaderboard data from Firebase
         const updateLeaderboard = async () => {
             const leaderboardList = document.getElementById("leaderboard-list");
             leaderboardList.innerHTML = "";
 
-            const querySnapshot = await getDocs(
-                collection(db, "leaderboard"),
-                orderBy("score", "desc"),
-                limit(10)
-            );
+            const querySnapshot = await db.collection("leaderboard")
+                .orderBy("score", "desc")
+                .limit(10)
+                .get();
 
             querySnapshot.forEach((doc) => {
                 const li = document.createElement("li");
@@ -144,41 +193,58 @@
             });
         };
 
+        // Initial leaderboard load
         updateLeaderboard();
 
+        // Dark Mode Toggle Function
         function toggleDarkMode() {
             document.body.classList.toggle("dark-mode");
         }
 
-        function adminLogin() {
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-            if (username === "Developer" && password === "Indi2017!!::") {
-                document.getElementById("admin-controls").classList.add("visible");
-                alert("Admin login successful!");
+        // Show Login Form
+        function showLoginForm() {
+            document.getElementById("signup-form").style.display = "none";
+            document.getElementById("login-form").style.display = "block";
+        }
+
+        // Show Signup Form
+        function showSignupForm() {
+            document.getElementById("login-form").style.display = "none";
+            document.getElementById("signup-form").style.display = "block";
+        }
+
+        // Signup User
+        function signupUser() {
+            const username = document.getElementById("signup-username").value;
+            const password = document.getElementById("signup-password").value;
+
+            auth.createUserWithEmailAndPassword(username + "@example.com", password)
+                .then((userCredential) => {
+                    alert("User signed up successfully!");
+                    showLoginForm();
+                })
+                .catch((error) => {
+                    alert(error.message);
+                });
+        }
+
+        // Login User
+        function loginUser() {
+            const username = document.getElementById("login-username").value;
+            const password = document.getElementById("login-password").value;
+
+            if (username === "Dev" && password === "Indi2017") {
+                alert("Welcome, Admin!");
+                // Admin functionality (e.g., enable admin features)
             } else {
-                alert("Invalid login credentials.");
+                auth.signInWithEmailAndPassword(username + "@example.com", password)
+                    .then((userCredential) => {
+                        alert("Logged in successfully!");
+                    })
+                    .catch((error) => {
+                        alert(error.message);
+                    });
             }
-        }
-
-        function givePlayerClicks() {
-            // Implement function to select a player and add clicks in Firestore
-            alert("This would add clicks to a player.");
-        }
-
-        function giveSelfClicks() {
-            score += 10;
-            updateScore();
-        }
-
-        function banPlayer() {
-            // Implement banning logic here
-            alert("This would ban a player.");
-        }
-
-        function toggleGameStatus() {
-            gameStatus = !gameStatus;
-            alert(gameStatus ? "Game Started" : "Game Stopped");
         }
     </script>
 </body>
