@@ -5,17 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clicker Game</title>
     <style>
+        :root {
+            --bg-color: #f0f0f0;
+            --text-color: #333;
+        }
+        .dark-mode {
+            --bg-color: #333;
+            --text-color: #f0f0f0;
+        }
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            background-color: #f0f0f0;
-            cursor: url("cursor.png"), auto; /* Sets custom cursor image */
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            cursor: url("cursor.png"), auto;
         }
         #clicker-button {
-            background-image: url("bl-g.jpg"); /* Button image */
+            background-image: url("bl-g.jpg");
             background-size: cover;
-            width: 100px; /* Adjust as needed */
-            height: 100px; /* Adjust as needed */
+            width: 100px;
+            height: 100px;
             border: none;
             cursor: pointer;
             margin-top: 20px;
@@ -30,6 +39,11 @@
             list-style: none;
             padding: 0;
         }
+        .admin-panel, #admin-controls {
+            display: none;
+            margin-top: 20px;
+        }
+        .visible { display: block; }
     </style>
 </head>
 <body>
@@ -42,16 +56,34 @@
         <ul id="leaderboard-list"></ul>
     </div>
 
-    <!-- Firebase Configuration and App Setup -->
+    <!-- Dark Mode Toggle -->
+    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+
+    <!-- Admin Login -->
+    <div class="admin-panel">
+        <h2>Admin Panel</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="adminLogin()">Login</button>
+    </div>
+
+    <!-- Admin Controls -->
+    <div id="admin-controls">
+        <h2>Admin Controls</h2>
+        <button onclick="givePlayerClicks()">Give Clicks to Player</button>
+        <button onclick="giveSelfClicks()">Give Clicks to Self</button>
+        <button onclick="banPlayer()">Ban Player</button>
+        <button onclick="toggleGameStatus()">Start/Stop Game</button>
+    </div>
+
+    <!-- Firebase and Game Script -->
     <script type="module">
-        // Import Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
         import { getFirestore, collection, addDoc, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-        // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyAwK0xE6Erw89xVf0pJ9RUv0zYPoNsyKjo",
+            apiKey: "YOUR_FIREBASE_API_KEY",
             authDomain: "clicker-cd55d.firebaseapp.com",
             projectId: "clicker-cd55d",
             storageBucket: "clicker-cd55d.appspot.com",
@@ -60,45 +92,44 @@
             measurementId: "G-PVSKZBKTQ5"
         };
 
-        // Initialize Firebase and Firestore
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
 
-        // Audio and score initialization
         const clickSound = new Audio("click-sound.mp3");
         let score = 0;
+        let gameStatus = true;
 
-        // Update score on screen
         const updateScore = () => {
             document.getElementById("score").innerText = "Score: " + score;
         };
 
-        // Play sound, increment score, and save to Firebase
         document.getElementById("clicker-button").addEventListener("click", () => {
-            clickSound.play();
-            score++;
-            updateScore();
-            saveScore();
+            if (gameStatus) {
+                clickSound.play();
+                score++;
+                updateScore();
+                saveScore();
+            } else {
+                alert("The game is currently stopped by the admin.");
+            }
         });
 
-        // Save score to Firestore
         const saveScore = async () => {
             try {
                 await addDoc(collection(db, "leaderboard"), {
                     score: score,
                     timestamp: new Date()
                 });
-                updateLeaderboard(); // Refresh leaderboard after saving
+                updateLeaderboard();
             } catch (error) {
                 console.error("Error saving score: ", error);
             }
         };
 
-        // Retrieve and display leaderboard data
         const updateLeaderboard = async () => {
             const leaderboardList = document.getElementById("leaderboard-list");
-            leaderboardList.innerHTML = ""; // Clear current list
+            leaderboardList.innerHTML = "";
 
             const querySnapshot = await getDocs(
                 collection(db, "leaderboard"),
@@ -113,8 +144,42 @@
             });
         };
 
-        // Initial leaderboard load
         updateLeaderboard();
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+        }
+
+        function adminLogin() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            if (username === "Developer" && password === "Indi2017!!::") {
+                document.getElementById("admin-controls").classList.add("visible");
+                alert("Admin login successful!");
+            } else {
+                alert("Invalid login credentials.");
+            }
+        }
+
+        function givePlayerClicks() {
+            // Implement function to select a player and add clicks in Firestore
+            alert("This would add clicks to a player.");
+        }
+
+        function giveSelfClicks() {
+            score += 10;
+            updateScore();
+        }
+
+        function banPlayer() {
+            // Implement banning logic here
+            alert("This would ban a player.");
+        }
+
+        function toggleGameStatus() {
+            gameStatus = !gameStatus;
+            alert(gameStatus ? "Game Started" : "Game Stopped");
+        }
     </script>
 </body>
 </html>
